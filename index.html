@@ -683,7 +683,7 @@
 
         const kids = document.createElement('div');
         kids.className = 'folder-children';
-        kids.appendChild(buildTree(item.children, item.name + '/'));
+        kids.appendChild(buildTree(item.children, prefix + item.name + '/'));
         hdr.addEventListener('click', () => {
           folderState[item.name] = !folderState[item.name];
           const ch = document.getElementById('ch-' + CSS.escape(item.name));
@@ -751,7 +751,7 @@
   }
 
   // ─── Init tree ────────────────────────────────────────────────
-  document.getElementById('js-tree').appendChild(buildTree(TREE));
+  document.getElementById('js-tree').appendChild(buildTree(TREE, 'stories/'));
 </script>
 
 </body>
