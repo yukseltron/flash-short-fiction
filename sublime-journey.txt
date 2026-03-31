@@ -8,9 +8,6 @@
  =============== =  ==    =    = 
 
 
-  By Hamid Yuksel
-
-
 
 
 
@@ -173,7 +170,6 @@ The calm returns.
 
 
 
-End Chapter 1
 
 
 

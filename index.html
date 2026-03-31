@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>flash-short-fiction</title>
+  <title>flash txt fiction</title>
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -12,20 +12,19 @@
     }
 
     :root {
-      --accent:        #007AFF;
-      --accent-sel:    #0063D1;
-      --text-1:        #1C1C1E;
-      --text-2:        #636366;
-      --text-3:        #AEAEB2;
-      --text-4:        #C7C7CC;
-      --sep:           rgba(0,0,0,0.10);
-      --sep-strong:    rgba(0,0,0,0.16);
-      --sidebar-bg:    rgba(242,242,247,0.92);
-      --titlebar-bg:   rgba(235,235,235,0.95);
-      --content-bg:    #FFFFFF;
-      --row-hover:     rgba(0,0,0,0.045);
-      --sel-text:      #FFFFFF;
-      --shadow:        0 24px 80px rgba(0,0,0,0.32), 0 6px 18px rgba(0,0,0,0.18), inset 0 0 0 0.5px rgba(255,255,255,0.5);
+      --accent-sel:  #0063D1;
+      --text-1:      #1C1C1E;
+      --text-2:      #636366;
+      --text-3:      #AEAEB2;
+      --text-4:      #C7C7CC;
+      --sep:         rgba(0,0,0,0.10);
+      --sep-strong:  rgba(0,0,0,0.16);
+      --sidebar-bg:  rgba(242,242,247,0.92);
+      --titlebar-bg: rgba(235,235,235,0.97);
+      --content-bg:  #FFFFFF;
+      --row-hover:   rgba(0,0,0,0.045);
+      --shadow:      0 24px 80px rgba(0,0,0,0.22), 0 6px 18px rgba(0,0,0,0.12),
+                     inset 0 0 0 0.5px rgba(255,255,255,0.5);
     }
 
     html, body {
@@ -33,7 +32,6 @@
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
       -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
@@ -46,35 +44,84 @@
 
     /* ─── Window ──────────────────────────────────────────────── */
     .window {
-      width:  min(1080px, 100%);
-      height: min(700px, calc(100vh - 48px));
+      /* size set by JS on init */
       display: flex;
       flex-direction: column;
       border-radius: 12px;
       overflow: hidden;
       box-shadow: var(--shadow);
-      border: 0.5px solid rgba(0,0,0,0.25);
+      border: 0.5px solid rgba(0,0,0,0.22);
+      position: relative; /* needed for resize handles */
     }
+
+    /* ─── Resize handles ──────────────────────────────────────── */
+    .rh {
+      position: absolute;
+      z-index: 500;
+    }
+    /* east */
+    .rh-e  { right: 0;  top: 8px; bottom: 8px; width: 5px;  cursor: ew-resize; }
+    /* south */
+    .rh-s  { bottom: 0; left: 8px; right: 8px;  height: 5px; cursor: ns-resize; }
+    /* south-east corner */
+    .rh-se { right: 0;  bottom: 0; width: 16px;  height: 16px; cursor: nwse-resize; }
 
     /* ─── Title bar ───────────────────────────────────────────── */
     .titlebar {
-      height: 52px;
+      height: 48px;
       background: var(--titlebar-bg);
       display: flex;
       align-items: center;
-      padding: 0 14px;
-      gap: 0;
+      padding: 0 10px 0 10px;
       border-bottom: 0.5px solid var(--sep-strong);
       flex-shrink: 0;
       position: relative;
       -webkit-user-select: none;
       user-select: none;
       cursor: grab;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
     }
 
     .titlebar:active { cursor: grabbing; }
+
+    /* titlebar buttons — left side */
+    .titlebar-btns {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+
+    .tb-btn {
+      width: 28px;
+      height: 24px;
+      background: none;
+      border: none;
+      border-radius: 6px;
+      cursor: default;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-3);
+      transition: background 0.08s, color 0.08s;
+      flex-shrink: 0;
+    }
+
+    .tb-btn:hover {
+      background: rgba(0,0,0,0.07);
+      color: var(--text-1);
+    }
+
+    .tb-btn svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: block;
+    }
 
     .titlebar-center {
       position: absolute;
@@ -83,12 +130,14 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      pointer-events: none;
     }
 
     .titlebar-icon {
-      width: 16px;
-      height: 16px;
-      opacity: 0.55;
+      width: 15px;
+      height: 15px;
+      opacity: 0.45;
+      flex-shrink: 0;
     }
 
     .titlebar-title {
@@ -96,7 +145,7 @@
       font-weight: 600;
       color: var(--text-1);
       letter-spacing: -0.15px;
-      max-width: 500px;
+      max-width: 460px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -119,13 +168,18 @@
       flex-direction: column;
       overflow-y: auto;
       overflow-x: hidden;
+      transition: width 0.2s cubic-bezier(0.4,0,0.2,1),
+                  border-right-width 0.2s;
+    }
+
+    .sidebar.collapsed {
+      width: 0;
+      border-right-width: 0;
     }
 
     .sidebar::-webkit-scrollbar { width: 0; }
 
-    .sidebar-section {
-      padding: 16px 0 8px;
-    }
+    .sidebar-section { padding: 16px 0 8px; }
 
     .section-label {
       font-size: 11px;
@@ -134,6 +188,7 @@
       text-transform: uppercase;
       color: var(--text-3);
       padding: 0 18px 5px;
+      white-space: nowrap;
     }
 
     /* file row */
@@ -146,17 +201,14 @@
       border-radius: 7px;
       cursor: default;
       min-height: 27px;
-      transition: background 0.08s ease;
+      transition: background 0.08s;
+      white-space: nowrap;
     }
 
-    .row:hover { background: var(--row-hover); }
-
-    .row.active {
-      background: var(--accent-sel);
-    }
-
+    .row:hover         { background: var(--row-hover); }
+    .row.active        { background: var(--accent-sel); }
     .row.active .row-name,
-    .row.active .row-icon { color: var(--sel-text); }
+    .row.active .row-icon { color: #fff; }
 
     .row-icon {
       font-size: 14px;
@@ -170,7 +222,6 @@
     .row-name {
       font-size: 12.5px;
       color: var(--text-1);
-      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       line-height: 1;
@@ -186,7 +237,7 @@
       border-radius: 7px;
       cursor: default;
       min-height: 27px;
-      transition: background 0.08s ease;
+      transition: background 0.08s;
     }
 
     .folder-header:hover { background: var(--row-hover); }
@@ -216,12 +267,10 @@
     .folder-children {
       overflow: hidden;
       max-height: 0;
-      transition: max-height 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: max-height 0.22s cubic-bezier(0.4,0,0.2,1);
     }
 
-    .folder-children .row {
-      padding-left: 30px;
-    }
+    .folder-children .row { padding-left: 30px; }
 
     /* ─── Viewer ──────────────────────────────────────────────── */
     .viewer {
@@ -230,6 +279,7 @@
       flex-direction: column;
       overflow: hidden;
       background: var(--content-bg);
+      min-width: 0;
     }
 
     .viewer-topbar {
@@ -247,6 +297,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      min-width: 0;
     }
 
     .viewer-filename {
@@ -254,6 +305,9 @@
       font-weight: 600;
       color: var(--text-1);
       letter-spacing: -0.1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .viewer-ext {
@@ -263,14 +317,15 @@
       background: #EFEFEF;
       padding: 1px 5px;
       border-radius: 4px;
+      flex-shrink: 0;
     }
 
     .viewer-meta {
       font-size: 11px;
       color: var(--text-3);
+      flex-shrink: 0;
     }
 
-    /* viewer content wrapper — must fill remaining height for scroll to work */
     #js-content {
       flex: 1;
       overflow: hidden;
@@ -291,25 +346,11 @@
       user-select: none;
     }
 
-    .empty-icon {
-      font-size: 40px;
-      opacity: 0.28;
-      line-height: 1;
-    }
+    .empty-icon    { font-size: 40px; opacity: 0.28; line-height: 1; }
+    .empty-primary { font-size: 13px; font-weight: 600; color: var(--text-3); }
+    .empty-secondary { font-size: 11.5px; color: var(--text-4); }
 
-    .empty-primary {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-3);
-      letter-spacing: -0.1px;
-    }
-
-    .empty-secondary {
-      font-size: 11.5px;
-      color: var(--text-4);
-    }
-
-    /* content */
+    /* scrollable content area */
     .viewer-scroll {
       flex: 1;
       overflow-y: auto;
@@ -323,9 +364,7 @@
       background: rgba(0,0,0,0.10);
       border-radius: 4px;
     }
-    .viewer-scroll::-webkit-scrollbar-thumb:hover {
-      background: rgba(0,0,0,0.18);
-    }
+    .viewer-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.18); }
 
     .story-text {
       font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
@@ -338,11 +377,11 @@
     }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(6px); }
+      from { opacity: 0; transform: translateY(5px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .story-text { animation: fadeUp 0.18s ease; }
+    .story-text { animation: fadeUp 0.16s ease; }
 
     /* ─── Status bar ──────────────────────────────────────────── */
     .statusbar {
@@ -353,21 +392,14 @@
       display: flex;
       align-items: center;
       padding: 0 16px;
-      gap: 16px;
+      gap: 12px;
       -webkit-user-select: none;
       user-select: none;
     }
 
-    .status-item {
-      font-size: 11px;
-      color: var(--text-3);
-    }
+    .status-item { font-size: 11px; color: var(--text-3); }
+    .status-dot  { color: var(--text-4); }
 
-    .status-dot {
-      color: var(--text-4);
-    }
-
-    /* loading */
     .loading-msg {
       font-family: 'Menlo', 'Monaco', monospace;
       font-size: 12px;
@@ -382,31 +414,57 @@
       color: #FF3B30;
       padding: 48px;
       line-height: 1.8;
+      white-space: pre;
     }
   </style>
 </head>
 <body>
 
-<div class="window">
+<div class="window" id="js-win">
+
+  <!-- Resize handles -->
+  <div class="rh rh-e"  data-dir="e"></div>
+  <div class="rh rh-s"  data-dir="s"></div>
+  <div class="rh rh-se" data-dir="se"></div>
 
   <!-- Title bar -->
   <div class="titlebar" id="js-titlebar">
+
+    <div class="titlebar-btns">
+      <!-- Sidebar toggle -->
+      <button class="tb-btn" id="js-btn-sidebar" title="Toggle sidebar">
+        <svg viewBox="0 0 14 12">
+          <rect x="0.6" y="0.6" width="12.8" height="10.8" rx="1.8"/>
+          <line x1="4.5" y1="0.6" x2="4.5" y2="11.4"/>
+        </svg>
+      </button>
+      <!-- Maximize / Restore -->
+      <button class="tb-btn" id="js-btn-max" title="Maximize">
+        <svg id="js-max-icon" viewBox="0 0 13 13">
+          <polyline points="1,4.5 1,1 4.5,1"/>
+          <polyline points="8.5,1 12,1 12,4.5"/>
+          <polyline points="12,8.5 12,12 8.5,12"/>
+          <polyline points="4.5,12 1,12 1,8.5"/>
+        </svg>
+      </button>
+    </div>
+
     <div class="titlebar-center">
       <svg class="titlebar-icon" viewBox="0 0 16 16" fill="none">
-        <rect x="2" y="1" width="9" height="12" rx="1.5" fill="#8E8E93" opacity="0.5"/>
+        <rect x="2" y="1" width="9" height="12" rx="1.5" fill="#8E8E93" opacity="0.4"/>
         <rect x="5" y="3" width="9" height="12" rx="1.5" fill="#8E8E93"/>
-        <rect x="7" y="6" width="5" height="1" rx="0.5" fill="white" opacity="0.7"/>
-        <rect x="7" y="8.5" width="5" height="1" rx="0.5" fill="white" opacity="0.7"/>
-        <rect x="7" y="11" width="3" height="1" rx="0.5" fill="white" opacity="0.7"/>
+        <rect x="7" y="6.5" width="5" height="0.9" rx="0.45" fill="white" opacity="0.7"/>
+        <rect x="7" y="9"   width="5" height="0.9" rx="0.45" fill="white" opacity="0.7"/>
+        <rect x="7" y="11.5" width="3" height="0.9" rx="0.45" fill="white" opacity="0.7"/>
       </svg>
-      <span class="titlebar-title" id="js-title">flash-short-fiction</span>
+      <span class="titlebar-title" id="js-title">flash txt fiction</span>
     </div>
+
   </div>
 
   <!-- Panes -->
   <div class="panes">
 
-    <!-- Sidebar -->
     <aside class="sidebar" id="js-sidebar">
       <div class="sidebar-section">
         <div class="section-label">Stories</div>
@@ -414,8 +472,7 @@
       </div>
     </aside>
 
-    <!-- Viewer -->
-    <main class="viewer" id="js-viewer">
+    <main class="viewer">
       <div class="viewer-topbar" id="js-topbar" style="display:none">
         <div class="viewer-topbar-left">
           <span class="viewer-filename" id="js-fname"></span>
@@ -425,9 +482,11 @@
       </div>
       <div id="js-content">
         <div class="empty-state">
-          <div class="empty-icon">🗂</div>
-          <div class="empty-primary">No file selected</div>
-          <div class="empty-secondary">Choose a story from the sidebar</div>
+          <div class="empty-primary">flash txt fiction</div>
+          <div class="empty-secondary">Old things. New things. Past things. Future things.</div>
+          <div class="empty-secondary">Most of these were written a while ago and very, very quickly.</div>
+          <div class="empty-secondary">Maybe more will be added. Maybe this is all we'll see.</div>
+          <div class="empty-secondary">///////////////////</div>
         </div>
       </div>
     </main>
@@ -446,22 +505,22 @@
 </div>
 
 <script>
-  // ─── File tree definition ──────────────────────────────────────
+  // ─── File tree ────────────────────────────────────────────────
   const TREE = [
     { name: "100daystodie.txt" },
     { name: "bullit.txt" },
     { name: "cactus-cereal.txt" },
-    { name: "Capria.txt" },
+    // { name: "Capria.txt" },
     { name: "Chimera.txt" },
     { name: "convergence.txt" },
     { name: "DANWORKS STEELPIPE MERRYTIME.txt" },
     { name: "Dreams of a Monster.txt" },
-    { name: "In Respect of the Blade.txt" },
+    { name: "In Spite of the Blade.txt" },
     { name: "Lost Loop.txt" },
-    { name: "MARTIAN WAR.txt" },
+    // { name: "MARTIAN WAR.txt" },
     { name: "messages.txt" },
     { name: "motivational.txt" },
-    { name: "MYDAY=-A.txt" },
+    // { name: "MYDAY=-A.txt" },
     { name: "San Fernando .txt" },
     { name: "sublime-journey.txt" },
     { name: "The Last Accident that caused the end of everything.txt" },
@@ -482,151 +541,217 @@
     }
   ];
 
-  // ─── State ────────────────────────────────────────────────────
-  let activePath = null;
-  const folderState = {};
+  // ─── Elements ─────────────────────────────────────────────────
+  const win      = document.getElementById('js-win');
+  const titlebar = document.getElementById('js-titlebar');
+  const sidebar  = document.getElementById('js-sidebar');
+  const btnSidebar = document.getElementById('js-btn-sidebar');
+  const btnMax     = document.getElementById('js-btn-max');
+  const maxIcon    = document.getElementById('js-max-icon');
+
+  // ─── Window size init ─────────────────────────────────────────
+  const MIN_W = 420, MIN_H = 300;
+  let winW = Math.min(1080, window.innerWidth  - 48);
+  let winH = Math.min(700,  window.innerHeight - 48);
+  function applySize() {
+    win.style.width  = winW + 'px';
+    win.style.height = winH + 'px';
+  }
+  applySize();
+
+  // ─── Drag ─────────────────────────────────────────────────────
+  let tx = 0, ty = 0;
+  let drag = null;
+
+  titlebar.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.titlebar-btns')) return;
+    if (isMaximized) return;
+    drag = { startX: e.clientX, startY: e.clientY, tx, ty };
+  });
+
+  // ─── Resize ───────────────────────────────────────────────────
+  let resizing = null;
+
+  document.querySelectorAll('.rh').forEach(h => {
+    h.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      if (isMaximized) return;
+      resizing = {
+        dir: h.dataset.dir,
+        startX: e.clientX,
+        startY: e.clientY,
+        startW: win.offsetWidth,
+        startH: win.offsetHeight,
+      };
+      document.body.style.userSelect = 'none';
+    });
+  });
+
+  // ─── Shared mousemove / mouseup ───────────────────────────────
+  document.addEventListener('mousemove', (e) => {
+    if (drag) {
+      tx = drag.tx + (e.clientX - drag.startX);
+      ty = drag.ty + (e.clientY - drag.startY);
+      win.style.transform = `translate(${tx}px, ${ty}px)`;
+    }
+    if (resizing) {
+      const dx = e.clientX - resizing.startX;
+      const dy = e.clientY - resizing.startY;
+      if (resizing.dir.includes('e')) {
+        winW = Math.max(MIN_W, resizing.startW + dx);
+        win.style.width = winW + 'px';
+      }
+      if (resizing.dir.includes('s')) {
+        winH = Math.max(MIN_H, resizing.startH + dy);
+        win.style.height = winH + 'px';
+      }
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    drag = null;
+    if (resizing) {
+      resizing = null;
+      document.body.style.userSelect = '';
+    }
+  });
+
+  // ─── Sidebar toggle ───────────────────────────────────────────
+  let sidebarVisible = true;
+
+  btnSidebar.addEventListener('mousedown', e => e.stopPropagation());
+  btnSidebar.addEventListener('click', () => {
+    sidebarVisible = !sidebarVisible;
+    sidebar.classList.toggle('collapsed', !sidebarVisible);
+    btnSidebar.style.color = sidebarVisible ? '' : 'var(--text-1)';
+  });
+
+  // ─── Maximize / Restore ───────────────────────────────────────
+  let isMaximized = false;
+  let savedW, savedH, savedTx, savedTy;
+
+  const EXPAND_SVG = `<polyline points="1,4.5 1,1 4.5,1"/>
+    <polyline points="8.5,1 12,1 12,4.5"/>
+    <polyline points="12,8.5 12,12 8.5,12"/>
+    <polyline points="4.5,12 1,12 1,8.5"/>`;
+
+  const COMPRESS_SVG = `<polyline points="4.5,1 4.5,4.5 1,4.5"/>
+    <polyline points="8.5,4.5 12,4.5 12,1"/>
+    <polyline points="12,8.5 8.5,8.5 8.5,12"/>
+    <polyline points="1,8.5 4.5,8.5 4.5,12"/>`;
+
+  btnMax.addEventListener('mousedown', e => e.stopPropagation());
+  btnMax.addEventListener('click', () => {
+    if (!isMaximized) {
+      savedW = winW; savedH = winH; savedTx = tx; savedTy = ty;
+      winW = window.innerWidth  - 48;
+      winH = window.innerHeight - 48;
+      tx = 0; ty = 0;
+      win.style.transform  = 'translate(0px, 0px)';
+      win.style.borderRadius = '8px';
+      applySize();
+      maxIcon.innerHTML = COMPRESS_SVG;
+      btnMax.title = 'Restore';
+      isMaximized = true;
+    } else {
+      winW = savedW; winH = savedH; tx = savedTx; ty = savedTy;
+      win.style.transform  = `translate(${tx}px, ${ty}px)`;
+      win.style.borderRadius = '';
+      applySize();
+      maxIcon.innerHTML = EXPAND_SVG;
+      btnMax.title = 'Maximize';
+      isMaximized = false;
+    }
+  });
 
   // ─── Build sidebar tree ───────────────────────────────────────
+  const folderState = {};
+
   function buildTree(items, prefix = '') {
     const frag = document.createDocumentFragment();
-
     for (const item of items) {
       if (item.folder) {
-        // Folder
         const wrap = document.createElement('div');
-
-        const hdr = document.createElement('div');
+        const hdr  = document.createElement('div');
         hdr.className = 'folder-header';
         hdr.innerHTML = `
-          <div class="chevron" id="ch-${item.name}">
+          <div class="chevron" id="ch-${CSS.escape(item.name)}">
             <svg viewBox="0 0 8 8"><polyline points="2,1 6,4 2,7"/></svg>
           </div>
           <span class="row-icon">📁</span>
-          <span class="row-name">${item.name}</span>
-        `;
+          <span class="row-name">${item.name}</span>`;
 
         const kids = document.createElement('div');
         kids.className = 'folder-children';
-        kids.id = `fc-${item.name}`;
-
-        // Build children
-        const childFrag = buildTree(item.children, item.name + '/');
-        kids.appendChild(childFrag);
-
-        hdr.addEventListener('click', () => toggleFolder(item.name, kids));
-
+        kids.appendChild(buildTree(item.children, item.name + '/'));
+        hdr.addEventListener('click', () => {
+          folderState[item.name] = !folderState[item.name];
+          const ch = document.getElementById('ch-' + CSS.escape(item.name));
+          ch.classList.toggle('open', folderState[item.name]);
+          kids.style.maxHeight = folderState[item.name]
+            ? (kids.scrollHeight + 400) + 'px' : '0';
+        });
         wrap.appendChild(hdr);
         wrap.appendChild(kids);
         frag.appendChild(wrap);
-
       } else {
-        // File
         const path = prefix + item.name;
-        const row = document.createElement('div');
+        const row  = document.createElement('div');
         row.className = 'row';
         row.dataset.path = path;
-        row.innerHTML = `
-          <span class="row-icon">📄</span>
-          <span class="row-name">${item.name}</span>
-        `;
+        row.innerHTML = `<span class="row-icon">📄</span>
+                         <span class="row-name">${item.name}</span>`;
         row.addEventListener('click', () => openFile(path, item.name));
         frag.appendChild(row);
       }
     }
-
     return frag;
-  }
-
-  function toggleFolder(name, kidsEl) {
-    folderState[name] = !folderState[name];
-    const ch = document.getElementById(`ch-${name}`);
-    if (folderState[name]) {
-      ch.classList.add('open');
-      kidsEl.style.maxHeight = kidsEl.scrollHeight + 300 + 'px';
-    } else {
-      ch.classList.remove('open');
-      kidsEl.style.maxHeight = '0';
-    }
   }
 
   // ─── Open file ────────────────────────────────────────────────
   async function openFile(path, name) {
-    // Highlight row
+
     document.querySelectorAll('.row').forEach(r => {
       r.classList.toggle('active', r.dataset.path === path);
     });
-    activePath = path;
 
-    // Show topbar, update header
     const topbar = document.getElementById('js-topbar');
     topbar.style.display = 'flex';
-
-    const baseName = name.replace(/\.txt$/, '');
-    document.getElementById('js-fname').textContent = baseName;
-    document.getElementById('js-meta').textContent = '';
+    document.getElementById('js-fname').textContent = name.replace(/\.txt$/, '');
+    document.getElementById('js-meta').textContent  = '';
     document.getElementById('js-title').textContent = name;
 
-    // Loading state
     const content = document.getElementById('js-content');
     content.innerHTML = '<div class="loading-msg">Loading…</div>';
 
     try {
-      // Encode path segments to handle special chars (colons, spaces)
       const encodedPath = path.split('/').map(encodeURIComponent).join('/');
       const res = await fetch(encodedPath);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();
 
-      // Render
       const scroll = document.createElement('div');
       scroll.className = 'viewer-scroll';
-
       const pre = document.createElement('pre');
       pre.className = 'story-text';
       pre.textContent = text;
-
       scroll.appendChild(pre);
       content.innerHTML = '';
       content.appendChild(scroll);
 
-      // Update meta
       const words = text.trim().split(/\s+/).filter(Boolean).length;
       const lines = text.split('\n').length;
       document.getElementById('js-meta').textContent =
         `${words.toLocaleString()} words · ${lines} lines`;
-
-      // Update status
       document.getElementById('js-status-left').textContent = name;
 
-    } catch (err) {
-      content.innerHTML = `<div class="error-msg">Could not load "${path}".\n\nTo use this reader, serve the project folder over HTTP:\n\n    python3 -m http.server 8080\n\nThen open http://localhost:8080 in your browser.</div>`;
+    } catch {
+      content.innerHTML = `<div class="error-msg">Could not load "${path}".\n\nServe this folder over HTTP to load files:\n\n    python3 -m http.server 8080\n\nThen open  http://localhost:8080</div>`;
     }
   }
 
-  // ─── Init ─────────────────────────────────────────────────────
-  const treeEl = document.getElementById('js-tree');
-  treeEl.appendChild(buildTree(TREE));
-
-  // ─── Draggable window ─────────────────────────────────────────
-  (function () {
-    const win      = document.querySelector('.window');
-    const titlebar = document.getElementById('js-titlebar');
-    let drag = null;
-    let tx = 0, ty = 0;
-
-    titlebar.addEventListener('mousedown', (e) => {
-      drag = { startX: e.clientX, startY: e.clientY, tx, ty };
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      if (!drag) return;
-      tx = drag.tx + (e.clientX - drag.startX);
-      ty = drag.ty + (e.clientY - drag.startY);
-      win.style.transform = `translate(${tx}px, ${ty}px)`;
-    });
-
-    document.addEventListener('mouseup', () => { drag = null; });
-  })();
+  // ─── Init tree ────────────────────────────────────────────────
+  document.getElementById('js-tree').appendChild(buildTree(TREE));
 </script>
 
 </body>
